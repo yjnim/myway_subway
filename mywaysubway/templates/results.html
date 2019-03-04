@@ -1,0 +1,106 @@
+{% extends 'index.html' %}
+{% load static %}
+{% block content %}
+<div style="width: 100%; text-align: center">
+    <br><br><br>
+    {% for menu in menus %}
+    <div class="card" style="width: 18rem;">
+        <div class="card-body">
+            <h3 class="card-title"><span class="badge badge-secondary" style="font-weight: normal">메뉴이름</span></h3>
+            <p class="card-text">
+                <p class="alert alert-success" role="alert" style="font-weight: bold">
+                    {{ menu.title }} <br>
+                </p>
+                <p class="card-text">
+                    <div class="result_title">
+                        <div class="result_title_element">
+                            빵
+                        </div>
+                        <div class="result_title_element">
+                            치즈
+                        </div>
+
+                        <div class="result_title_element_veg">
+                            야채
+                        </div>
+
+                        {% if menu.topping == "고르지 않음" %}
+                        <br>
+                        {% else %}
+                        <div class="result_title_element">
+                            토핑
+                        </div>
+                        {% endif %}
+                        <div class="result_title_element_so">
+                            소스
+                        </div>
+                        {% if menu.cookie == "고르지 않음" %}
+                        <br>
+                        {% else %}
+                        <div class="result_title_element">
+                            쿠키
+                        </div>
+                        {% endif %}
+                        {% if menu.beverage == "고르지 않음" %}
+                        <br>
+                        {% else %}
+                        <div class="result_title_element">
+                            음료
+                        </div>
+                        {% endif %}
+                        <div class="result_title_element_int">
+                            설명
+                        </div>
+                    </div>
+                    <div class="result_content">
+                        <div class="result_content_element">
+                            {{ menu.bread|default:"해당없음"}} <br>
+
+                        </div>
+                        <div class="result_content_element">
+                            {{ menu.cheeze }} <br>
+                        </div>
+
+                        <div class="result_content_element_veg">
+                            {{ menu.vegetable}} <br>
+                        </div>
+
+                        {% if menu.topping == "고르지 않음" %}
+                        <br>
+                        {% else %}
+                        <div class="result_content_element">
+                            {{ menu.topping}} <br>
+                        </div>
+                        {% endif %}
+                        <div class="result_content_element_so">
+                            {{ menu.source }} <br>
+                        </div>
+
+                        {% if menu.cookie == "고르지 않음" %}
+                        <br>
+                        {% else %}
+                        <div class="result_content_element">
+                            {{ menu.cookie }} <br>
+                        </div>
+                        {% endif %}
+                        {% if menu.beverage == "고르지 않음" %}
+                        <br>
+                        {% else %}
+                        <div class="result_content_element">
+                            {{ menu.beverage}} <br>
+                        </div>
+                        {% endif %}
+                        <div class="result_content_element_int">
+                            {{ menu.introduction }} <br>
+                        </div>
+                    </div>
+                </p>
+            </p>
+        </div>
+    </div>
+    {% endfor %}
+
+
+</div>
+
+{% endblock content %}

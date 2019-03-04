@@ -1,0 +1,591 @@
+{% extends 'index.html' %}
+{% load static %}
+{% load socialaccount %}
+{% providers_media_js %}
+
+{% block content %}
+<div class="login_content">
+
+    {% if user.is_authenticated %}
+    <span style="font-weight: bold">{{user.last_name}}{{user.first_name}}</span> <span style="padding: 0 40px 0 0">님이 로그인 중</span>
+    <a href="/accounts/logout" style="font-weight: bold">로그아웃</a> <br>
+    {% else %}
+    <a href="{% provider_login_url 'google' %}">구글 로그인</a> <br>
+    {% endif %}
+    {% for account in user.socialaccount_set.all %}
+    {{ account.extra_data.username }}
+    {% endfor %}
+</div>
+
+<div id="header">
+    <img src="{% static 'img/mwsw_logo.png' %}" alt="logo" id="logo">
+    <div id="info">
+        <p>
+            써브웨이를 갔는데<br>
+            오늘은 뭘 먹을지 고민이라면?<br>
+            아래 버튼을 눌러주세요!
+        </p>
+        <p>
+            원하는 부분만 선택하고<br>
+            나머지는 랜덤으로 결정할 수도 있어요!
+        </p>
+        <button id="random" onclick="sandwichRandomSelect();">오늘의 샌드위치는?</button>
+        <div class="receipt">
+            <h3 style="margin: 5px 0 15px 0; float: right;">오늘의 샌드위치</h3>
+            <h6 style="font-weight: bold">유저이름: {{user.last_name}}{{user.first_name}}</h6>
+            <div class="hr">
+            </div>
+            <table class="receipt_tb" id="receipt_table">
+            </table>
+            <div class="hr" style="border-top: none;">
+            </div>
+            <table class="receipt_tb" id="receipt_result">
+            </table>
+            <div class="hr" style="margin-top: 3px;">
+            </div>
+            <div>
+                <h4 id="intro" style="text-align: center;"></h4>
+                <textarea id="introduction" rows="8" name="comment" form="usrform" style="float:right; width: 100%;"></textarea>
+            </div>
+            <div style="width:100%; text-align:center;">
+                <button id='save_intro' onclick="saveIntroduction();">설명 저장</button>
+            </div>
+        </div>
+        <button id="savemenu" style="display:none;" onclick="saveMenu();">저장하기</button>
+    </div>
+</div>
+
+<div id="container">
+    <div class="choose">
+        <!-- 샌드위치 고르기 -->
+        <div class="title">
+            <h3>1. 샌드위치</h3>
+            <p class="warning">먼저 샌드위치 카테고리를 골라주세요.</p>
+        </div>
+        <div class="category">
+            <select id='swcategory' onchange='sandwichCategory();'>
+                <!--샌드위치 대분류-->
+                <option value='random' selected>랜덤으로 결정</option>
+                <option value='classic'>클래식</option>
+                <option value='fresh'>프레쉬&라이트</option>
+                <option value='premium'>프리미엄</option>
+            </select>
+            <div id="section">
+                <!--숨겨져있다가 대분류 선택하면 나타남-->
+                <div id="classic" style="display:none;">
+                    <!-- 클래식 샌드위치 -->
+                    <form>
+                        <div class="goods">
+                            <img class="pic" src="{% static 'img/sandwich_cl06.jpg' %}">
+                            <div class="radioname"><input type="radio" name="classic" value="eggmayo" class="radiobt"
+                                    checked>에그마요</div>
+                        </div>
+                        <div class="goods">
+                            <img class="pic" src="{% static 'img/sandwich_cl01.jpg' %}">
+                            <div class="radioname"><input type="radio" name="classic" value="italianbmt" class="radiobt">이탈리안
+                                비엠티</div>
+                        </div>
+                        <div class="goods">
+                            <img class="pic" src="{% static 'img/sandwich_cl02.jpg' %}">
+                            <div class="radioname"><input type="radio" name="classic" value="blt" class="radiobt">비엘티</div>
+                        </div>
+                        <div class="goods">
+                            <img class="pic" src="{% static 'img/sandwich_cl03.jpg' %}">
+                            <div class="radioname"><input type="radio" name="classic" value="meatball" class="radiobt">미트볼</div>
+                        </div>
+                        <div class="goods">
+                            <img class="pic" src="{% static 'img/sandwich_cl04.jpg' %}"><br>
+                            <div class="radioname"><input type="radio" name="classic" value="ham" class="radiobt">햄</div>
+                        </div>
+                        <div class="goods">
+                            <img class="pic" src="{% static 'img/sandwich_cl05.jpg' %}">
+                            <div class="radioname"><input type="radio" name="classic" value="tuna" class="radiobt">참치</div>
+                        </div>
+
+                    </form>
+                </div>
+                <div id="fresh" style="display:none;">
+                    <!-- 프레쉬앤라이트 샌드위치 -->
+                    <form>
+                        <div class="goods">
+                            <img class="pic" src="{% static 'img/sandwich_fl01.jpg' %}">
+                            <div class="radioname"><input type="radio" name="fresh" value="rotisseriechicken" class="radiobt"
+                                    checked>로티세리 치킨</div>
+                        </div>
+                        <div class="goods">
+                            <img class="pic" src="{% static 'img/sandwich_fl02.jpg' %}">
+                            <div class="radioname"><input type="radio" name="fresh" value="roastchicken" class="radiobt">로스트
+                                치킨</div>
+                        </div>
+                        <div class="goods">
+                            <img class="pic" src="{% static 'img/sandwich_fl03.jpg' %}">
+                            <div class="radioname"><input type="radio" name="fresh" value="roastbeef" class="radiobt">로스트
+                                비프</div>
+                        </div>
+                        <div class="goods">
+                            <img class="pic" src="{% static 'img/sandwich_fl04.jpg' %}">
+                            <div class="radioname"><input type="radio" name="fresh" value="subwayclub" class="radiobt">써브웨이
+                                클럽</div>
+                        </div>
+                        <div class="goods">
+                            <img class="pic" src="{% static 'img/sandwich_fl05.jpg' %}">
+                            <div class="radioname"><input type="radio" name="fresh" value="turkey" class="radiobt">터키</div>
+                        </div>
+                        <div class="goods">
+                            <img class="pic" src="{% static 'img/sandwich_fl06.jpg' %}">
+                            <div class="radioname"><input type="radio" name="fresh" value="veggie" class="radiobt">베지</div>
+                        </div>
+                    </form>
+                </div>
+                <div id="premium" style="display:none;">
+                    <!-- 프리미엄 샌드위치 -->
+                    <form>
+                        <div class="goods">
+                            <img class="pic" src="{% static 'img/sandwich_pm08.jpg' %}">
+                            <div class="radioname"><input type="radio" name="premium" value="pulledpork" class="radiobt"
+                                    checked>풀드포크</div>
+                        </div>
+                        <div class="goods">
+                            <img class="pic" src="{% static 'img/sandwich_pm01.jpg' %}">
+                            <div class="radioname"><input type="radio" name="premium" value="steakncheese" class="radiobt">스테이크
+                                & 치즈</div>
+                        </div>
+                        <div class="goods">
+                            <img class="pic" src="{% static 'img/sandwich_pm02.jpg' %}">
+                            <div class="radioname"><input type="radio" name="premium" value="turkeybaconavocado" class="radiobt">터키
+                                베이컨 아보카도</div>
+                        </div>
+                        <div class="goods">
+                            <img class="pic" src="{% static 'img/sandwich_pm03.jpg' %}">
+                            <div class="radioname"><input type="radio" name="premium" value="chickenbaconlanch" class="radiobt">치킨
+                                베이컨 랜치</div>
+                        </div>
+                        <div class="goods">
+                            <img class="pic" src="{% static 'img/sandwich_pm04.jpg' %}">
+                            <div class="radioname"><input type="radio" name="premium" value="subwaymelt" class="radiobt">써브웨이
+                                멜트</div>
+                        </div>
+                        <div class="goods">
+                            <img class="pic" src="{% static 'img/sandwich_pm05.jpg' %}">
+                            <div class="radioname"><input type="radio" name="premium" value="turkeybacon" class="radiobt">터키
+                                베이컨</div>
+                        </div>
+                        <div class="goods">
+                            <img class="pic" src="{% static 'img/sandwich_pm06.jpg' %}">
+                            <div class="radioname"><input type="radio" name="premium" value="spicyitalian" class="radiobt">스파이시
+                                이탈리안</div>
+                        </div>
+                        <div class="goods">
+                            <img class="pic" src="{% static 'img/sandwich_pm07.jpg' %}">
+                            <div class="radioname"><input type="radio" name="premium" value="chickenteriyaki" class="radiobt">치킨
+                                데리야끼</div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="choose">
+        <!-- 빵 고르기 -->
+        <div class="title">
+            <h3>2. 빵</h3>
+        </div>
+        <div class="category">
+            <form>
+                <div class="goods">
+                    <img class="pic" src="{% static 'img/img_recipe_b01.jpg' %}">
+                    <div class="radioname"><input type="radio" name="bread" value="honeyoat" class="radiobt">허니오트</div>
+                </div>
+                <div class="goods">
+                    <img class="pic" src="{% static 'img/img_recipe_b02.jpg' %}">
+                    <div class="radioname"><input type="radio" name="bread" value="hearty" class="radiobt">하티</div>
+                </div>
+                <div class="goods">
+                    <img class="pic" src="{% static 'img/img_recipe_b03.jpg' %}">
+                    <div class="radioname"><input type="radio" name="bread" value="wheat" class="radiobt">위트</div>
+                </div>
+                <div class="goods">
+                    <img class="pic" src="{% static 'img/img_recipe_b04.jpg' %}">
+                    <div class="radioname"><input type="radio" name="bread" value="parmesanoregano" class="radiobt">파마산
+                        오레가노</div>
+                </div>
+                <div class="goods">
+                    <img class="pic" src="{% static 'img/img_recipe_b05.jpg' %}">
+                    <div class="radioname"><input type="radio" name="bread" value="white" class="radiobt">화이트</div>
+                </div>
+                <div class="goods">
+                    <img class="pic" src="{% static 'img/img_recipe_b06.jpg' %}">
+                    <div class="radioname"><input type="radio" name="bread" value="flatbread" class="radiobt">플랫 브레드</div>
+                </div>
+                <div class="goods">
+                    <img class="pic" src="{% static 'img/img_random.jpg' %}">
+                    <div class="radioname"><input type="radio" name="bread" value="random" class="radiobt" checked>랜덤으로
+                        결정</div>
+                </div>
+            </form>
+        </div>
+    </div>
+    <div class="choose">
+        <!-- 치즈 고르기 -->
+        <div class="title">
+            <h3>3. 치즈</h3>
+        </div>
+        <div class="category">
+            <form>
+                <div class="goods">
+                    <img class="pic" src="{% static 'img/img_recipe_c01.jpg' %}">
+                    <div class="radioname"><input type="radio" name="cheese" value="american" class="radiobt">아메리칸 치즈</div>
+                </div>
+                <div class="goods">
+                    <img class="pic" src="{% static 'img/img_recipe_c02.jpg' %}">
+                    <div class="radioname"><input type="radio" name="cheese" value="sheredded" class="radiobt">슈레드 치즈</div>
+                </div>
+                <div class="goods">
+                    <img class="pic" src="{% static 'img/img_random.jpg' %}">
+                    <div class="radioname"><input type="radio" name="cheese" value="random" class="radiobt" checked>랜덤으로
+                        결정</div>
+                </div>
+            </form>
+        </div>
+    </div>
+    <div class="choose">
+        <!-- 야채 고르기 -->
+        <div class="title">
+            <h3>4. 채소</h3> <!-- 전체 체크표시 되어있고 안 먹는 야채 체크 해제 -->
+            <form onchange="vegetableRandom()">
+                <div class="toppingask">
+                    <p class="warning">채소를 직접 선택하시겠습니까?</p>
+                    <div class="toppingyn"><input type="radio" name="selectvege" value="select" class="radiobt">직접 선택</div>
+                    <div class="toppingyn"><input type="radio" name="selectvege" value="random" class="radiobt" checked>랜덤으로
+                        선택</div>
+                </div>
+            </form>
+        </div>
+        <div class="category">
+            <div id="vegetable">
+                <p class="warning">⚠️ 주의 : 빼고 싶은 채소를 체크 해제하세요. 채소는 최소한 한 가지 이상 선택해야 합니다.</p>
+                <form>
+                    <div class="goods">
+                        <img class="pic" src="{% static 'img/img_recipe_v01.jpg' %}">
+                        <div class="radioname"><input type="checkbox" name="vagetable" value="lettuce" class="radiobt"
+                                checked>양상추</div>
+                    </div>
+                    <div class="goods">
+                        <img class="pic" src="{% static 'img/img_recipe_v02.jpg' %}">
+                        <div class="radioname"><input type="checkbox" name="vagetable" value="tomato" class="radiobt"
+                                checked>토마토</div>
+                    </div>
+                    <div class="goods">
+                        <img class="pic" src="{% static 'img/img_recipe_v03.jpg' %}">
+                        <div class="radioname"><input type="checkbox" name="vagetable" value="cucumber" class="radiobt"
+                                checked>오이</div>
+                    </div>
+                    <div class="goods">
+                        <img class="pic" src="{% static 'img/img_recipe_v04.jpg' %}">
+                        <div class="radioname"><input type="checkbox" name="vagetable" value="pepper" class="radiobt"
+                                checked>피망</div>
+                    </div>
+                    <div class="goods">
+                        <img class="pic" src="{% static 'img/img_recipe_v05.jpg' %}">
+                        <div class="radioname"><input type="checkbox" name="vagetable" value="onion" class="radiobt"
+                                checked>양파</div>
+                    </div>
+                    <div class="goods">
+                        <img class="pic" src="{% static 'img/img_recipe_v06.jpg' %}">
+                        <div class="radioname"><input type="checkbox" name="vagetable" value="pickle" class="radiobt"
+                                checked>피클</div>
+                    </div>
+                    <div class="goods">
+                        <img class="pic" src="{% static 'img/img_recipe_v07.jpg' %}">
+                        <div class="radioname"><input type="checkbox" name="vagetable" value="olive" class="radiobt"
+                                checked>올리브</div>
+                    </div>
+                    <div class="goods">
+                        <img class="pic" src="{% static 'img/img_recipe_v08.jpg' %}">
+                        <div class="radioname"><input type="checkbox" name="vagetable" value="jalapeno" class="radiobt"
+                                checked>할라피뇨</div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div class="choose">
+        <!-- 추가토핑 고르기 -->
+        <div class="title">
+            <h3>4-1. 추가토핑</h3> <!-- 추가할지 안할지 먼저 선택 -->
+            <form onchange="toppingYesOrNo();">
+                <div id="toppingask">
+                    <p class="warning">토핑을 추가하시겠습니까? (토핑은 랜덤선택에 포함되지 않습니다.)</p>
+                    <div class="toppingyn"><input type="radio" name="addtopping" value="no" class="radiobt" checked>토핑
+                        추가하지 않기</div>
+                    <div class="toppingyn"><input type="radio" name="addtopping" value="yes" class="radiobt">토핑 추가하기</div>
+                </div>
+            </form>
+        </div>
+        <div class="category">
+            <div id="toppingmenu">
+                <form>
+                    <div class="goods">
+                        <img class="pic" src="{% static 'img/img_toppping_01.jpg' %}">
+                        <div class="radioname"><input type="checkbox" name="topping" value="doubleup" class="radiobt">더블업</div>
+                    </div>
+                    <div class="goods">
+                        <img class="pic" src="{% static 'img/img_toppping_02.jpg' %}">
+                        <div class="radioname"><input type="checkbox" name="topping" value="eggmayotoppping" class="radiobt">에그마요</div>
+                    </div>
+                    <div class="goods">
+                        <img class="pic" src="{% static 'img/img_toppping_03.jpg' %}">
+                        <div class="radioname"><input type="checkbox" name="topping" value="omlet" class="radiobt">오믈렛</div>
+                    </div>
+                    <div class="goods">
+                        <img class="pic" src="{% static 'img/img_toppping_04.jpg' %}">
+                        <div class="radioname"><input type="checkbox" name="topping" value="avocado" class="radiobt">아보카도</div>
+                    </div>
+                    <div class="goods">
+                        <img class="pic" src="{% static 'img/img_toppping_05.jpg' %}">
+                        <div class="radioname"><input type="checkbox" name="topping" value="bacon" class="radiobt">베이컨</div>
+                    </div>
+                    <div class="goods">
+                        <img class="pic" src="{% static 'img/img_toppping_06.jpg' %}">
+                        <div class="radioname"><input type="checkbox" name="topping" value="pepperoni" class="radiobt">페퍼로니</div>
+                    </div>
+                    <div class="goods">
+                        <img class="pic" src="{% static 'img/img_toppping_07.jpg' %}">
+                        <div class="radioname"><input type="checkbox" name="topping" value="doublecheese" class="radiobt">더블치즈</div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div class="choose">
+        <!-- 소스 고르기 -->
+        <div class="title">
+            <h3>5. 소스</h3>
+            <form onchange="sauceRandom()">
+                <div class="toppingask">
+                    <p class="warning">소스를 직접 선택하시겠습니까?</p>
+                    <div class="toppingyn"><input type="radio" name="selectsauce" value="select" class="radiobt">직접 선택</div>
+                    <div class="toppingyn"><input type="radio" name="selectsauce" value="random" class="radiobt"
+                            checked>랜덤으로 선택</div>
+                </div>
+            </form>
+        </div>
+        <div class="category">
+            <form onchange="sauceAmount();">
+                <div id="sauceselect" style="display:none;">
+                    <p class="warning">소스는 최대 3개까지 선택가능합니다.</p>
+                    <div class="saucecategory">
+                        <h4>새콤한 맛</h4>
+                        <div class="goods">
+                            <img class="pic" src="{% static 'img/img_recipe_s03.jpg' %}">
+                            <div class="radioname"><input type="checkbox" name="sauce" value="mustard" class="radiobt">머스타드</div>
+                        </div>
+                        <div class="goods">
+                            <img class="pic" src="{% static 'img/img_recipe_s10.jpg' %}">
+                            <div class="radioname"><input type="checkbox" name="sauce" value="thousandisland" class="radiobt">사우전
+                                아일랜드</div>
+                        </div>
+                        <div class="goods">
+                            <img class="pic" src="{% static 'img/img_recipe_s03.jpg' %}">
+                            <div class="radioname"><input type="checkbox" name="sauce" value="italiandressing" class="radiobt">이탈리안
+                                드레싱</div>
+                        </div>
+                        <div class="goods">
+                            <img class="pic" src="{% static 'img/img_recipe_s15.jpg' %}">
+                            <div class="radioname"><input type="checkbox" name="sauce" value="redwinevinegar" class="radiobt">레드와인
+                                식초</div>
+                        </div>
+                    </div>
+                    <div class="saucecategory">
+                        <h4>달콤한 맛</h4>
+                        <div class="goods">
+                            <img class="pic" src="{% static 'img/img_recipe_s07.jpg' %}">
+                            <div class="radioname"><input type="checkbox" name="sauce" value="sweetonion" class="radiobt">스위트
+                                어니언</div>
+                        </div>
+                        <div class="goods">
+                            <img class="pic" src="{% static 'img/img_recipe_s11.jpg' %}">
+                            <div class="radioname"><input type="checkbox" name="sauce" value="honeymustard" class="radiobt">허니
+                                머스타드</div>
+                        </div>
+                        <div class="goods">
+                            <img class="pic" src="{% static 'img/img_recipe_s12.jpg' %}">
+                            <div class="radioname"><input type="checkbox" name="sauce" value="sweetchili" class="radiobt">스위트
+                                칠리</div>
+                        </div>
+                        <div class="goods">
+                            <img class="pic" src="{% static 'img/img_recipe_s17.jpg' %}">
+                            <div class="radioname"><input type="checkbox" name="sauce" value="bbq" class="radiobt">스모크
+                                바비큐</div>
+                        </div>
+                    </div>
+                    <div class="saucecategory">
+                        <h4>고소한 맛</h4>
+                        <div class="goods">
+                            <img class="pic" src="{% static 'img/img_recipe_s01.jpg' %}">
+                            <div class="radioname"><input type="checkbox" name="sauce" value="ranch" class="radiobt">랜치</div>
+                        </div>
+                        <div class="goods">
+                            <img class="pic" src="{% static 'img/img_recipe_s02.jpg' %}">
+                            <div class="radioname"><input type="checkbox" name="sauce" value="mayonnaise" class="radiobt">마요네즈</div>
+                        </div>
+                    </div>
+                    <div class="saucecategory">
+                        <h4>매콤한 맛</h4>
+                        <div class="goods">
+                            <img class="pic" src="{% static 'img/img_recipe_s18.jpg' %}">
+                            <div class="radioname"><input type="checkbox" name="sauce" value="hotchili" class="radiobt">핫
+                                칠리</div>
+                        </div>
+                        <div class="goods">
+                            <img class="pic" src="{% static 'img/img_recipe_s09.jpg' %}">
+                            <div class="radioname"><input type="checkbox" name="sauce" value="southwest" class="radiobt">사우스
+                                웨스트</div>
+                        </div>
+                        <div class="goods">
+                            <img class="pic" src="{% static 'img/img_recipe_s04.jpg' %}">
+                            <div class="radioname"><input type="checkbox" name="sauce" value="horseradish" class="radiobt">홀스레디쉬</div>
+                        </div>
+                    </div>
+                    <div class="saucecategory">
+                        <h4>기타</h4>
+                        <div class="goods">
+                            <img class="pic" src="{% static 'img/img_recipe_s06.jpg' %}">
+                            <div class="radioname"><input type="checkbox" name="sauce" value="oliveoil" class="radiobt">올리브
+                                오일</div>
+                        </div>
+                        <div class="goods">
+                            <img class="pic" src="{% static 'img/img_recipe_s13.jpg' %}">
+                            <div class="radioname"><input type="checkbox" name="sauce" value="salt" class="radiobt">소금</div>
+                        </div>
+                        <div class="goods">
+                            <img class="pic" src="{% static 'img/img_recipe_s14.jpg' %}">
+                            <div class="radioname"><input type="checkbox" name="sauce" value="blackpepper" class="radiobt">후추</div>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+    <div class="choose">
+        <!-- 세트메뉴 고르기 -->
+        <div class="title">
+            <h3>6. 구성</h3>
+        </div>
+        <div class="category">
+            <form onchange="setmenuSelect();">
+                <div class="saucecategory">
+                    <h4>샌드위치 길이</h4>
+                    <div class="nopicgoods">
+                        <div class="radioname" style="margin-top: 25px;"><input type="radio" name="length" value="15cm"
+                                class="radiobt" checked>15cm</div>
+                    </div>
+                    <div class="nopicgoods">
+                        <div class="radioname" style="margin-top: 25px;"><input type="radio" name="length" value="30cm"
+                                class="radiobt">30cm</div>
+                    </div>
+                </div><br>
+                <div class="saucecategory">
+                    <h4>세트메뉴</h4>
+                    <p class="warning" style="margin-top: 10px; margin-left: 30px;">어떻게 드시겠습니까?</p>
+                    <div class="goods">
+                        <div style="width: 160px; height: 96px; text-align: center; display: inline-block;"><img class="pic"
+                                style="margin-top: 10px;" src="{% static 'img/mg_store_order06.png' %}"></div>
+                        <div class="radioname"><input type="radio" name="setyn" value="single" class="radiobt" checked>샌드위치
+                            단품</div>
+                    </div>
+                    <div class="goods">
+                        <img class="pic" src="{% static 'img/mg_store_order05.png' %}">
+                        <div class="radioname"><input type="radio" name="setyn" value="set" class="radiobt">세트메뉴</div>
+                    </div>
+                </div>
+            </form>
+            <form>
+                <div id="setmenu">
+                    <!-- 세트메뉴 선택하면 보일 부분 -->
+                    <div class="saucecategory">
+                        <h4>쿠키 / 칩</h4>
+                        <div class="goods">
+                            <img class="pic" src="{% static 'img/img_sides_03.jpg' %}">
+                            <div class="radioname"><input type="radio" name="cookie" value="doublechocochips" class="radiobt">더블
+                                초코칩 쿠키</div>
+                        </div>
+                        <div class="goods">
+                            <img class="pic" src="{% static 'img/img_sides_04.jpg' %}">
+                            <div class="radioname"><input type="radio" name="cookie" value="chocochip" class="radiobt">초코칩
+                                쿠키</div>
+                        </div>
+                        <div class="goods">
+                            <img class="pic" src="{% static 'img/img_sides_05.jpg' %}">
+                            <div class="radioname"><input type="radio" name="cookie" value="oatmeal" class="radiobt">오트밀
+                                레이즌</div>
+                        </div>
+                        <div class="goods">
+                            <img class="pic" src="{% static 'img/img_sides_06.jpg' %}">
+                            <div class="radioname"><input type="radio" name="cookie" value="raspberry" class="radiobt">라즈베리
+                                치즈케익</div>
+                        </div>
+                        <div class="goods">
+                            <img class="pic" src="{% static 'img/img_sides_07.jpg' %}">
+                            <div class="radioname"><input type="radio" name="cookie" value="whitechoco" class="radiobt">화이트
+                                초코 마카다미아</div>
+                        </div>
+                        <div class="goods">
+                            <img class="pic" src="{% static 'img/img_sides_08.jpg' %}"><br>
+                            <div class="radioname"><input type="radio" name="cookie" value="chips" class="radiobt">칩</div>
+                        </div>
+                        <div class="goods">
+                            <img class="pic" src="{% static 'img/img_random.jpg' %}"><br>
+                            <div class="radioname"><input type="radio" name="cookie" value="random" class="radiobt">랜덤으로
+                                결정</div>
+                        </div>
+                    </div>
+                    <div class="saucecategory">
+                        <h4 style="margin-bottom: 10px;">음료</h4>
+                        <div class="goods">
+                            <img class="pic_drink" src="{% static 'img/img_cocacola.png' %}"><br>
+                            <div class="drinkradioname"><input type="radio" name="drink" value="cocacola" class="radiobt">코카콜라</div>
+                        </div>
+                        <div class="goods">
+                            <img class="pic_drink" src="{% static 'img/img_sprite.png' %}"><br>
+                            <div class="drinkradioname"><input type="radio" name="drink" value="sprite" class="radiobt">스프라이트</div>
+                        </div>
+                        <div class="goods">
+                            <img class="pic_drink" src="{% static 'img/img_fanta_pineapple.png' %}"><br>
+                            <div class="drinkradioname"><input type="radio" name="drink" value="pineapple" class="radiobt">환타
+                                파인애플</div>
+                        </div>
+                        <div class="goods">
+                            <img class="pic_drink" src="{% static 'img/img_fanta_grape.png' %}"><br>
+                            <div class="drinkradioname"><input type="radio" name="drink" value="grape" class="radiobt">환타
+                                포도</div>
+                        </div>
+                        <div class="goods">
+                            <img class="pic_drink" src="{% static 'img/img_fanta_orange.png' %}"><br>
+                            <div class="drinkradioname"><input type="radio" name="drink" value="orange" class="radiobt">환타
+                                오렌지</div>
+                        </div>
+                        <div class="goods">
+                            <img class="pic_drink" src="{% static 'img/img_random.jpg' %}"><br>
+                            <div class="drinkradioname"><input type="radio" name="drink" value="random" class="radiobt">랜덤으로
+                                결정</div>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+    <!-- <div class="choose">
+        <div class="title">
+            <h3>7. 나만의 메뉴 설명</h3>
+        </div>
+        <div>
+        <h4 id='intro'> 설명 없음</h4>
+        <textarea id="introduction" rows="10" cols="100" name="comment" form="usrform"></textarea>
+        </div>
+        <button id='save_intro' onclick="saveIntroduction();">설명 저장</button>
+    </div>
+    <button id="savemenu" style="display:none;" onclick="saveMenu();">저장하기</button> -->
+</div>
+
+{% endblock %}
