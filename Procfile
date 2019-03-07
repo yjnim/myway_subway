@@ -1,0 +1,1 @@
+web: gunicorn mayway_subway.wsgi --log-file -
