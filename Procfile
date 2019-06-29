@@ -1,1 +1,1 @@
-web: gunicorn mayway_subway.wsgi --log-file -
+web: gunicorn myway_subway.wsgi --log-file -
